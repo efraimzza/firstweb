@@ -1,16 +1,66 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="he">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>העלאת קובץ ZIP להמרה ל-APK</title>
-    <link rel="stylesheet" href="סגנון.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        input, button {
+            margin: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+    </style>
 </head>
 <body>
     <h1>העלה קובץ ZIP כדי להמיר ל-APK</h1>
     <input type="file" id="zipFile" accept=".zip">
     <button onclick="uploadZip()">העלה והמר ל-APK</button>
 
-    <script src="script.js"></script>
+    <script>
+        function uploadZip() {
+            const fileInput = document.getElementById('zipFile');
+            if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+                alert("אנא בחר קובץ ZIP.");
+                return;
+            }
+
+            const file = fileInput.files[0];
+            alert("הקובץ מועלה...");
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('שגיאה ברשת');
+                return response.blob();
+            })
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'app-debug.apk';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+            })
+            .catch(error => {
+                console.error(error);
+                alert("שגיאה בהעלאה.");
+            });
+        }
+    </script>
 </body>
 </html>
